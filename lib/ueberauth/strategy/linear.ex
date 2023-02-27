@@ -39,11 +39,6 @@ defmodule Ueberauth.Strategy.Linear do
   Handles the callback from Linear.
   """
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
-    req_headers = conn.req_headers
-    Logger.warn("req_headers: #{inspect(req_headers)}")
-    resp_headers = conn.resp_headers
-    Logger.warn("resp_headers: #{inspect(resp_headers)}")
-
     module = option(conn, :oauth2_module)
     params = [code: code]
     redirect_uri = get_redirect_uri(conn)
