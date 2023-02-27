@@ -6,6 +6,7 @@ defmodule Ueberauth.Strategy.Linear do
   use Ueberauth.Strategy,
     uid_field: :id,
     default_scope: "read",
+    send_redirect_uri: true,
     oauth2_module: Ueberauth.Strategy.Linear.OAuth
 
   require Logger
@@ -16,14 +17,6 @@ defmodule Ueberauth.Strategy.Linear do
   Handles initial request for Linear authentication.
   """
   def handle_request!(conn) do
-    scopes = conn.params["scope"] || option(conn, :default_scope)
-    opts = [scope: scopes]
-
-    opts =
-      if conn.params["state"],
-        do: Keyword.put(opts, :state, conn.params["state"]),
-        else: opts
-
     callback_url = callback_url(conn)
 
     callback_url =
@@ -31,7 +24,12 @@ defmodule Ueberauth.Strategy.Linear do
         do: String.slice(callback_url, 0..-2),
         else: callback_url
 
-    opts = Keyword.put(opts, :redirect_uri, callback_url)
+    opts =
+      []
+      |> with_scopes(conn)
+      |> with_state_param(conn)
+      |> Keyword.put(:redirect_uri, callback_url)
+
     module = option(conn, :oauth2_module)
 
     redirect!(conn, apply(module, :authorize_url!, [opts]))
@@ -41,6 +39,11 @@ defmodule Ueberauth.Strategy.Linear do
   Handles the callback from Linear.
   """
   def handle_callback!(%Plug.Conn{params: %{"code" => code}} = conn) do
+    req_headers = conn.req_headers
+    Logger.warn("req_headers: #{inspect(req_headers)}")
+    resp_headers = conn.resp_headers
+    Logger.warn("resp_headers: #{inspect(resp_headers)}")
+
     module = option(conn, :oauth2_module)
     params = [code: code]
     redirect_uri = get_redirect_uri(conn)
@@ -177,5 +180,10 @@ defmodule Ueberauth.Strategy.Linear do
       redirect_uri ->
         redirect_uri
     end
+  end
+
+  defp with_scopes(opts, conn) do
+    scopes = conn.params["scope"] || option(conn, :default_scope)
+    Keyword.put(opts, :scope, scopes)
   end
 end

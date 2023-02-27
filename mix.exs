@@ -1,7 +1,7 @@
 defmodule UeberauthLinear.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @url "https://github.com/withbroadcast/ueberauth_linear"
 
   def project do
@@ -32,7 +32,7 @@ defmodule UeberauthLinear.MixProject do
   defp deps do
     [
       {:oauth2, "~> 2.0"},
-      {:ueberauth, "~> 0.6"},
+      {:ueberauth, "~> 0.7"},
       {:jason, "~> 1.0"},
 
       # dev/test dependencies
